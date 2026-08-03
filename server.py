@@ -2,7 +2,7 @@ from flask import Flask, request, send_from_directory
 import requests, os
 
 # ===== CONFIG =====
-BOT_TOKEN = "8568845871:AAHO5Xi1iUuXeCOoaKdIbCz1jkFeu629pJo"
+BOT_TOKEN = "8358391409:AAEeDC5zWqlG2EoFxyTzHGkFkr1Rmi7jMic"
 ADMIN_CHAT_ID = 6508791739  # @userinfobot se mila ID
 UPLOAD_DIR = "uploads"
 
